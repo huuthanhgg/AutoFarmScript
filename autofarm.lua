@@ -1,87 +1,80 @@
-local UIS = game:GetService("UserInputService")
-local Players = game:GetService("Players")
-local LP = Players.LocalPlayer
-local Mouse = LP:GetMouse()
+-- AutoFarm GUI v2 by huuthanhgg
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+local Window = Rayfield:CreateWindow({
+    Name = "AutoFarm - AOT",
+    LoadingTitle = "Loading Config...",
+    LoadingSubtitle = "by huuthanhgg",
+    ConfigurationSaving = {
+       Enabled = true,
+       FolderName = "AutoFarmConfig",
+       FileName = "AOT_Settings"
+    }
+})
 
--- Config
-local shotSpeed = 0.15  -- Tốc độ bắn
-local bossShots = 8  -- Số lần bắn boss
-local enableCombo = true
-local autoRunning = false
+-- Main Tab
+local MainTab = Window:CreateTab("Main", 4483362458)
+local MiscTab = Window:CreateTab("Misc", 4483362458)
 
--- Hàm bắn
-function attack()
-    mouse1click()
-    wait(shotSpeed)
-end
-
--- Nhận diện Enemy
-function findEnemy()
-    for _, v in pairs(workspace:GetChildren()) do
-        if v:IsA("Model") and v:FindFirstChild("Humanoid") then
-            local hrp = v:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                LP.Character.HumanoidRootPart.CFrame = hrp.CFrame * CFrame.new(0, 0, -5)
-                attack()
-            end
+-- AutoFarm Toggle
+MainTab:CreateToggle({
+    Name = "AutoFarm",
+    CurrentValue = false,
+    Flag = "AutoFarm",
+    Callback = function(state)
+        autoRunning = state
+        if autoRunning then
+            autoFarm()
         end
     end
-end
+})
 
--- Nhận diện Boss
-function findBoss()
-    for _, v in pairs(workspace:GetChildren()) do
-        if v:IsA("Model") and v:FindFirstChild("BossTag") then
-            local hrp = v:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                LP.Character.HumanoidRootPart.CFrame = hrp.CFrame * CFrame.new(0, 0, -5)
-                if enableCombo then
-                    UIS:SendKeyEvent(true, Enum.KeyCode.LeftShift, false, game)
-                    wait(0.2)
-                    UIS:SendKeyEvent(true, Enum.KeyCode.Two, false, game)
-                    wait(0.2)
-                end
-                for i = 1, bossShots do
-                    attack()
-                end
-            end
-        end
+-- Auto Mission
+MainTab:CreateToggle({
+    Name = "Auto Mission (Blades)",
+    CurrentValue = false,
+    Flag = "AutoMission",
+    Callback = function(state)
+        autoMission = state
     end
-end
+})
 
--- Auto Farm Function
-function autoFarm()
-    autoRunning = true
-    while autoRunning do
-        findBoss()
-        findEnemy()
-        wait(0.05)
+-- Auto Raid
+MainTab:CreateToggle({
+    Name = "Auto Raid (Blades)",
+    CurrentValue = false,
+    Flag = "AutoRaid",
+    Callback = function(state)
+        autoRaid = state
     end
-end
+})
 
--- GUI Menu
-local ScreenGui = Instance.new("ScreenGui")
-local Frame = Instance.new("Frame")
-local StartButton = Instance.new("TextButton")
-local StopButton = Instance.new("TextButton")
+-- Speed Slider
+MainTab:CreateSlider({
+    Name = "Fire Speed",
+    Range = {0.05, 0.5},
+    Increment = 0.01,
+    CurrentValue = 0.15,
+    Flag = "FireSpeed",
+    Callback = function(value)
+        shotSpeed = value
+    end
+})
 
-ScreenGui.Parent = game.CoreGui
-Frame.Parent = ScreenGui
-Frame.Size = UDim2.new(0, 200, 0, 100)
-Frame.Position = UDim2.new(0.4, 0, 0.4, 0)
+-- Misc Features
+MiscTab:CreateToggle({
+    Name = "Titan ESP",
+    CurrentValue = false,
+    Flag = "TitanESP",
+    Callback = function(state)
+        titanESP = state
+    end
+})
 
-StartButton.Parent = Frame
-StartButton.Size = UDim2.new(0, 180, 0, 40)
-StartButton.Position = UDim2.new(0, 10, 0, 10)
-StartButton.Text = "Start AutoFarm"
-StartButton.MouseButton1Click:Connect(autoFarm)
+MiscTab:CreateButton({
+    Name = "Return to Lobby",
+    Callback = function()
+        game:GetService("TeleportService"):Teleport(game.PlaceId)
+    end
+})
 
-StopButton.Parent = Frame
-StopButton.Size = UDim2.new(0, 180, 0, 40)
-StopButton.Position = UDim2.new(0, 10, 0, 50)
-StopButton.Text = "Stop AutoFarm"
-StopButton.MouseButton1Click:Connect(function()
-    autoRunning = false
-end)
-
-print("AutoFarm Loaded! Press Start to begin.")
+Rayfield:LoadConfiguration()

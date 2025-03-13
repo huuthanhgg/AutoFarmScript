@@ -1,4 +1,4 @@
--- AutoFarm GUI v2 by huuthanhgg (Thunder Spear Update)
+-- AutoFarm GUI v2 by huuthanhgg (Thunder Spear Fixed)
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 local Window = Rayfield:CreateWindow({
     Name = "AutoFarm - AOT (Thunder Spear)",
@@ -99,24 +99,38 @@ MiscTab:CreateButton({
     end
 })
 
+-- Function to find Boss
+function findBoss()
+    for _, v in pairs(game.Workspace:GetChildren()) do
+        if v:IsA("Model") and v:FindFirstChild("Humanoid") and v:FindFirstChild("Head") and v.Name == "Titan" then
+            return v
+        end
+    end
+    return nil
+end
+
 -- Function for Thunder Spear AutoFarm
 function autoFarm()
     while autoRunning do
         local boss = findBoss()
         if boss and autoThunder then
-            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = boss.CFrame
-            wait(0.1)
-            game:GetService("VirtualInputManager"):SendKeyEvent(true, "LeftShift", false, game)
-            wait(0.2)
-            game:GetService("VirtualInputManager"):SendKeyEvent(true, "Two", false, game)
-            wait(0.2)
-            for i = 1, spearShots do
-                game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, true, game, 1)
-                wait(shotSpeed)
+            local char = game.Players.LocalPlayer.Character
+            if char and char:FindFirstChild("HumanoidRootPart") then
+                char.HumanoidRootPart.CFrame = boss.HumanoidRootPart.CFrame * CFrame.new(0, 10, -15) -- Di chuyển đến Boss
+                wait(0.5)
+                game:GetService("VirtualInputManager"):SendKeyEvent(true, "LeftShift", false, game) -- Nhấn Shift
+                wait(0.2)
+                game:GetService("VirtualInputManager"):SendKeyEvent(true, "Two", false, game) -- Chọn Thunder Spear
+                wait(0.3)
+                for i = 1, spearShots do
+                    game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, true, game, 1) -- Bắn
+                    wait(shotSpeed)
+                end
             end
         end
-        wait(0.05)
+        wait(0.1)
     end
 end
 
 Rayfield:LoadConfiguration()
+

@@ -1,136 +1,98 @@
--- AutoFarm GUI v2 by huuthanhgg (Thunder Spear Fixed)
-local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
-local Window = Rayfield:CreateWindow({
-    Name = "AutoFarm - AOT (Thunder Spear)",
-    LoadingTitle = "Loading Config...",
-    LoadingSubtitle = "by huuthanhgg",
-    ConfigurationSaving = {
-       Enabled = true,
-       FolderName = "AutoFarmConfig",
-       FileName = "AOT_Settings"
-    }
-})
-
--- Main Tab
-local MainTab = Window:CreateTab("Main", 4483362458)
-local MiscTab = Window:CreateTab("Misc", 4483362458)
-
--- AutoFarm Toggle
-MainTab:CreateToggle({
-    Name = "AutoFarm",
-    CurrentValue = false,
-    Flag = "AutoFarm",
-    Callback = function(state)
-        autoRunning = state
-        if autoRunning then
-            autoFarm()
-        end
-    end
-})
-
--- Auto Mission
-MainTab:CreateToggle({
-    Name = "Auto Mission (Blades)",
-    CurrentValue = false,
-    Flag = "AutoMission",
-    Callback = function(state)
-        autoMission = state
-    end
-})
-
--- Auto Raid
-MainTab:CreateToggle({
-    Name = "Auto Raid (Blades)",
-    CurrentValue = false,
-    Flag = "AutoRaid",
-    Callback = function(state)
-        autoRaid = state
-    end
-})
-
--- Thunder Spear AutoFarm
-MainTab:CreateToggle({
-    Name = "Auto Thunder Spear",
-    CurrentValue = false,
-    Flag = "ThunderSpear",
-    Callback = function(state)
-        autoThunder = state
-    end
-})
-
--- Thunder Spear Shot Count
-MainTab:CreateSlider({
-    Name = "Thunder Spear Shots",
-    Range = {1, 10},
-    Increment = 1,
-    CurrentValue = 5,
-    Flag = "SpearShots",
-    Callback = function(value)
-        spearShots = value
-    end
-})
-
--- Speed Slider
-MainTab:CreateSlider({
-    Name = "Fire Speed",
-    Range = {0.05, 0.5},
-    Increment = 0.01,
-    CurrentValue = 0.15,
-    Flag = "FireSpeed",
-    Callback = function(value)
-        shotSpeed = value
-    end
-})
-
--- Misc Features
-MiscTab:CreateToggle({
-    Name = "Titan ESP",
-    CurrentValue = false,
-    Flag = "TitanESP",
-    Callback = function(state)
-        titanESP = state
-    end
-})
-
-MiscTab:CreateButton({
-    Name = "Return to Lobby",
-    Callback = function()
-        game:GetService("TeleportService"):Teleport(game.PlaceId)
-    end
-})
-
--- Function to find Boss
-function findBoss()
-    for _, v in pairs(game.Workspace:GetChildren()) do
-        if v:IsA("Model") and v:FindFirstChild("Humanoid") and v:FindFirstChild("Head") and v.Name == "Titan" then
-            return v
-        end
-    end
-    return nil
+-- 🚀 Script by huuthanh 🚀
+if game:IsLoaded() then
+    print("Game is already loaded, executing script.")
+else
+    game.Loaded:Wait()
 end
 
--- Function for Thunder Spear AutoFarm
-function autoFarm()
-    while autoRunning do
-        local boss = findBoss()
-        if boss and autoThunder then
-            local char = game.Players.LocalPlayer.Character
-            if char and char:FindFirstChild("HumanoidRootPart") then
-                char.HumanoidRootPart.CFrame = boss.HumanoidRootPart.CFrame * CFrame.new(0, 10, -15) -- Di chuyển đến Boss
-                wait(0.5)
-                game:GetService("VirtualInputManager"):SendKeyEvent(true, "LeftShift", false, game) -- Nhấn Shift
-                wait(0.2)
-                game:GetService("VirtualInputManager"):SendKeyEvent(true, "Two", false, game) -- Chọn Thunder Spear
-                wait(0.3)
-                for i = 1, spearShots do
-                    game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, true, game, 1) -- Bắn
-                    wait(shotSpeed)
+local GameP = game.PlaceId
+
+-- Function to send notifications (English & Vietnamese)
+local function sendNotification(title, text)
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "[huuthanh] " .. title,
+        Text = text,
+        Icon = "rbxassetid://13264701341"
+    })
+end
+
+sendNotification("Notification", "Script by huuthanh - Checking...")
+wait(0.1)
+sendNotification("Notification", "Checking Place ID...")
+wait(0.1)
+
+-- Game script selection
+local url
+
+if game.PlaceId == 12137249458 then  
+    sendNotification("Game", "Gun Grounds [" .. GameP .. "]")
+    url = "https://raw.githubusercontent.com/zerunquist/TekkitAotr/main/gungroundsffa"
+
+elseif game.PlaceId == 2753915549 or game.PlaceId == 4442272183 or game.PlaceId == 7449423635 then
+    sendNotification("Game", "Blox Fruits [" .. GameP .. "]")
+    url = "https://raw.githubusercontent.com/JD-04/Tekkit/refs/heads/main/Blox%20obf.txt"
+
+elseif game.PlaceId == 286090429 then
+    sendNotification("Game", "Arsenal [" .. GameP .. "]")
+    url = "https://raw.githubusercontent.com/JD-04/Tekkit/refs/heads/main/Arsenal"
+
+else
+    sendNotification("Game", "Aot:R Hub [" .. GameP .. "] Loading...")
+    url = "https://api.luarmor.net/files/v3/loaders/705e7fe7aa288f0fe86900cedb1119b1.lua"
+end
+
+-- Load and execute script
+if url then
+    local success, response = pcall(function()
+        return game:HttpGet(url)
+    end)
+
+    if success then
+        loadstring(response)()
+    else
+        sendNotification("Error", "Failed to load script from URL: " .. url)
+    end
+else
+    sendNotification("Error", "No script found for this game.") 
+end
+
+-- ==============================
+-- 🚀 THUNDER SPEAR AUTO FARM - SHOOT FROM ANYWHERE 🚀
+-- ==============================
+local function farmThunderSpear()
+    sendNotification("AutoFarm", "Script huuthanh - Starting Thunder Spear farm from anywhere!")
+
+    local player = game.Players.LocalPlayer
+    local mouse = player:GetMouse()
+
+    while true do
+        wait(0.1)
+
+        -- Check for bosses
+        local bosses = workspace:FindFirstChild("Bosses")
+        if bosses then
+            for _, boss in pairs(bosses:GetChildren()) do
+                if boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
+                    sendNotification("AutoFarm", "💥 huuthanh is shooting the boss from anywhere!")
+
+                    -- Switch to Thunder Spear
+                    game:GetService("VirtualInputManager"):SendKeyEvent(true, "Two", false, game)
+                    wait(0.2)
+
+                    -- Aim at the boss from a distance
+                    mouse.TargetFilter = boss
+                    mouse.Hit = boss.Head.CFrame
+                    wait(0.1)
+
+                    -- Shoot Thunder Spear
+                    game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, true, game, 0)
+                    wait(0.1)
+                    game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, false, game, 0)
                 end
             end
         end
-        wait(0.1)
     end
 end
 
-Rayfield:LoadConfiguration()
-
+-- Activate Thunder Spear farm
+task.spawn(farmThunderSpear)

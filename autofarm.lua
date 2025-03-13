@@ -1,98 +1,134 @@
--- 🚀 Script by huuthanh 🚀
-if game:IsLoaded() then
-    print("Game is already loaded, executing script.")
-else
-    game.Loaded:Wait()
-end
+-- // Load Rayfield Library
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+local Window = Rayfield:CreateWindow({
+    Name = "Huuthanh Hub - AOT:R",
+    LoadingTitle = "Huuthanh Hub - Attack on Titan Revolution",
+    LoadingSubtitle = "Script by Huuthanh",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "HuuthanhHub",
+        FileName = "AOTR_Config"
+    }
+})
 
-local GameP = game.PlaceId
+-- // Tabs
+local MainTab = Window:CreateTab("Main", 4483362458)
+local CombatTab = Window:CreateTab("Combat", 4483362458)
+local UtilityTab = Window:CreateTab("Utility", 4483362458)
 
--- Function to send notifications (English & Vietnamese)
-local function sendNotification(title, text)
-    game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "[huuthanh] " .. title,
-        Text = text,
-        Icon = "rbxassetid://13264701341"
-    })
-end
+-- // Variables
+local flyEnabled = false
+local autoMissionEnabled = false
+local autoReplayEnabled = false
+local fastTSEnabled = false
 
-sendNotification("Notification", "Script by huuthanh - Checking...")
-wait(0.1)
-sendNotification("Notification", "Checking Place ID...")
-wait(0.1)
+-- // Fly (Tránh Titan)
+local function Fly()
+    local character = game.Players.LocalPlayer.Character
+    if not character then return end
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
 
--- Game script selection
-local url
-
-if game.PlaceId == 12137249458 then  
-    sendNotification("Game", "Gun Grounds [" .. GameP .. "]")
-    url = "https://raw.githubusercontent.com/zerunquist/TekkitAotr/main/gungroundsffa"
-
-elseif game.PlaceId == 2753915549 or game.PlaceId == 4442272183 or game.PlaceId == 7449423635 then
-    sendNotification("Game", "Blox Fruits [" .. GameP .. "]")
-    url = "https://raw.githubusercontent.com/JD-04/Tekkit/refs/heads/main/Blox%20obf.txt"
-
-elseif game.PlaceId == 286090429 then
-    sendNotification("Game", "Arsenal [" .. GameP .. "]")
-    url = "https://raw.githubusercontent.com/JD-04/Tekkit/refs/heads/main/Arsenal"
-
-else
-    sendNotification("Game", "Aot:R Hub [" .. GameP .. "] Loading...")
-    url = "https://api.luarmor.net/files/v3/loaders/705e7fe7aa288f0fe86900cedb1119b1.lua"
-end
-
--- Load and execute script
-if url then
-    local success, response = pcall(function()
-        return game:HttpGet(url)
-    end)
-
-    if success then
-        loadstring(response)()
+    if flyEnabled then
+        humanoidRootPart.Anchored = true
+        humanoidRootPart.CFrame = humanoidRootPart.CFrame * CFrame.new(0, 50, 0) -- Bay lên cao
     else
-        sendNotification("Error", "Failed to load script from URL: " .. url)
+        humanoidRootPart.Anchored = false
     end
-else
-    sendNotification("Error", "No script found for this game.") 
 end
 
--- ==============================
--- 🚀 THUNDER SPEAR AUTO FARM - SHOOT FROM ANYWHERE 🚀
--- ==============================
-local function farmThunderSpear()
-    sendNotification("AutoFarm", "Script huuthanh - Starting Thunder Spear farm from anywhere!")
+-- // Auto Mission
+local function AutoMission()
+    while autoMissionEnabled do
+        for _, mission in pairs(game.Workspace.Missions:GetChildren()) do
+            if mission:FindFirstChild("MissionPrompt") then
+                fireproximityprompt(mission.MissionPrompt)
+            end
+        end
+        wait(2)
+    end
+end
 
-    local player = game.Players.LocalPlayer
-    local mouse = player:GetMouse()
-
-    while true do
-        wait(0.1)
-
-        -- Check for bosses
-        local bosses = workspace:FindFirstChild("Bosses")
-        if bosses then
-            for _, boss in pairs(bosses:GetChildren()) do
-                if boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
-                    sendNotification("AutoFarm", "💥 huuthanh is shooting the boss from anywhere!")
-
-                    -- Switch to Thunder Spear
-                    game:GetService("VirtualInputManager"):SendKeyEvent(true, "Two", false, game)
-                    wait(0.2)
-
-                    -- Aim at the boss from a distance
-                    mouse.TargetFilter = boss
-                    mouse.Hit = boss.Head.CFrame
-                    wait(0.1)
-
-                    -- Shoot Thunder Spear
-                    game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, true, game, 0)
-                    wait(0.1)
-                    game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, false, game, 0)
+-- // Auto Replay Mission/Raid
+local function AutoReplay()
+    while autoReplayEnabled do
+        local playerGui = game.Players.LocalPlayer:FindFirstChild("PlayerGui")
+        if playerGui then
+            for _, v in pairs(playerGui:GetChildren()) do
+                if v:IsA("ScreenGui") and v:FindFirstChild("ReplayButton") then
+                    v.ReplayButton:Activate()
+                    wait(5)
                 end
             end
         end
+        wait(3)
     end
 end
 
--- Activate Thunder Spear farm
-task.spawn(farmThunderSpear)
+-- // Auto Reload
+local function AutoReload()
+    while true do
+        local character = game.Players.LocalPlayer.Character
+        if character and character:FindFirstChild("Reload") then
+            character["Reload"]:Activate()
+        end
+        wait(5)
+    end
+end
+
+-- // Auto Escape
+local function AutoEscape()
+    while true do
+        local character = game.Players.LocalPlayer.Character
+        if character and character:FindFirstChild("Escape") then
+            character["Escape"]:Activate()
+        end
+        wait(0.1)
+    end
+end
+
+-- // Menu
+MainTab:CreateToggle({
+    Name = "Auto Mission",
+    CurrentValue = false,
+    Callback = function(value)
+        autoMissionEnabled = value
+        if value then AutoMission() end
+    end
+})
+
+MainTab:CreateToggle({
+    Name = "Auto Replay (Raid/Mission)",
+    CurrentValue = false,
+    Callback = function(value)
+        autoReplayEnabled = value
+        if value then AutoReplay() end
+    end
+})
+
+MainTab:CreateToggle({
+    Name = "Fly (Tránh Titan)",
+    CurrentValue = false,
+    Callback = function(value)
+        flyEnabled = value
+        Fly()
+    end
+})
+
+CombatTab:CreateToggle({
+    Name = "Bắn Thunder Spear Nhanh",
+    CurrentValue = false,
+    Callback = function(value)
+        fastTSEnabled = value
+    end
+})
+
+UtilityTab:CreateButton({
+    Name = "Auto Reload",
+    Callback = function() AutoReload() end
+})
+
+UtilityTab:CreateButton({
+    Name = "Auto Escape",
+    Callback = function() AutoEscape() end
+})

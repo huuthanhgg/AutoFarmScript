@@ -1,6 +1,6 @@
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
--- Giao diện menu đẹp hơn
+-- 🎨 Tùy chỉnh giao diện menu
 Rayfield:ChangeTheme({
     Background = Color3.fromRGB(10, 10, 20),
     Topbar = Color3.fromRGB(30, 30, 50),
@@ -24,7 +24,32 @@ local Window = Rayfield:CreateWindow({
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 
--- // Tìm Titan gần nhất
+-- 🏃‍♂️ Auto Escape (Tự động né Titan)
+local function AutoEscape()
+    while wait(0.5) do
+        local closestTitan = FindClosestTitan()
+        if closestTitan then
+            local distance = (character.HumanoidRootPart.Position - closestTitan.HumanoidRootPart.Position).Magnitude
+            if distance < 15 then
+                character.HumanoidRootPart.CFrame = character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 20)
+            end
+        end
+    end
+end
+
+-- 🔄 Auto Reload (Tự động nạp đạn Thunder Spear)
+local function AutoReload()
+    while wait(1) do
+        local tool = character:FindFirstChild("ThunderSpear")
+        if tool and tool:FindFirstChild("Ammo") and tool.Ammo.Value == 0 then
+            tool:Activate()
+            wait(1)
+            tool:Deactivate()
+        end
+    end
+end
+
+-- 🎯 Tìm Titan gần nhất
 local function FindClosestTitan()
     local closestTitan = nil
     local shortestDistance = math.huge
@@ -40,7 +65,71 @@ local function FindClosestTitan()
     return closestTitan
 end
 
--- // Fly Mode
+-- 🔥 Auto Raid
+local function AutoRaid()
+    Rayfield:Notify("Auto Raid", "⚔️ Bắt đầu Raid tự động!", 3)
+
+    while wait(1) do
+        local raidExists = workspace:FindFirstChild("RaidArea")
+        if not raidExists then
+            for _, v in pairs(workspace:GetChildren()) do
+                if v:IsA("Model") and v.Name == "RaidTeleporter" then
+                    player.Character.HumanoidRootPart.CFrame = v.CFrame
+                    wait(2)
+                end
+            end
+        else
+            local titan = FindClosestTitan()
+            if titan then
+                character.HumanoidRootPart.CFrame = titan.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
+                wait(0.5)
+                if character:FindFirstChild("CDM") then
+                    character.CDM:Activate()
+                elseif character:FindFirstChild("ThunderSpear") then
+                    character.ThunderSpear:Activate()
+                end
+            end
+        end
+    end
+end
+
+-- 🎯 Auto Mission
+local function AutoMission()
+    Rayfield:Notify("Auto Mission", "🎯 Đang làm nhiệm vụ tự động!", 3)
+
+    while wait(1) do
+        local missionGui = player.PlayerGui
+        if not missionGui:FindFirstChild("MissionActive") then
+            game:GetService("ReplicatedStorage").Remotes.Mission:FireServer("Start")
+            wait(2)
+        else
+            local titan = FindClosestTitan()
+            if titan then
+                character.HumanoidRootPart.CFrame = titan.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
+                wait(0.5)
+                if character:FindFirstChild("CDM") then
+                    character.CDM:Activate()
+                elseif character:FindFirstChild("ThunderSpear") then
+                    character.ThunderSpear:Activate()
+                end
+            end
+        end
+    end
+end
+
+-- 🔄 Auto Replay
+local function AutoReplay()
+    while wait(2) do
+        local gui = player.PlayerGui
+        if gui:FindFirstChild("MissionComplete") or gui:FindFirstChild("MissionFailed") then
+            Rayfield:Notify("Auto Replay", "🔄 Đang tự động replay nhiệm vụ!", 3)
+            wait(3)
+            game:GetService("ReplicatedStorage").Remotes.Raid:FireServer("Replay")
+        end
+    end
+end
+
+-- 🛸 Fly Mode
 local flying = false
 local flightSpeed = 100
 
@@ -71,105 +160,25 @@ local function StopFlying()
     end
 end
 
--- // Auto Chém Titan (CDM)
-local function AutoSlashTitan()
-    while true do
-        local titan = FindClosestTitan()
-        if titan and character:FindFirstChild("CDM") then
-            character.CDM:Activate()
-            character.HumanoidRootPart.CFrame = titan.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
-        end
-        wait(0.5)
-    end
-end
-
--- // Auto Bắn Titan (Thunder Spear)
-local function AutoShootTitan()
-    while true do
-        local titan = FindClosestTitan()
-        if titan and character:FindFirstChild("ThunderSpear") then
-            character.ThunderSpear:Activate()
-            character.HumanoidRootPart.CFrame = titan.HumanoidRootPart.CFrame * CFrame.new(0, 10, 0)
-        end
-        wait(1)
-    end
-end
-
--- // Auto Raid
-local function AutoRaid()
-    StartFlying()  -- Kích hoạt Fly Mode khi vào Raid
-
-    while true do
-        local raidExists = workspace:FindFirstChild("RaidArea")
-        if not raidExists then
-            for _, v in pairs(workspace:GetChildren()) do
-                if v:IsA("Model") and v.Name == "RaidTeleporter" then
-                    player.Character.HumanoidRootPart.CFrame = v.CFrame
-                    wait(2)
-                end
-            end
-        else
-            local titan = FindClosestTitan()
-            if titan then
-                character.HumanoidRootPart.CFrame = titan.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
-                wait(0.5)
-                if character:FindFirstChild("CDM") then
-                    character.CDM:Activate()
-                elseif character:FindFirstChild("ThunderSpear") then
-                    character.ThunderSpear:Activate()
-                end
-            end
-        end
-        wait(1)
-    end
-end
-
--- // Auto Mission
-local function AutoMission()
-    StartFlying()  -- Kích hoạt Fly Mode khi làm Mission
-
-    while true do
-        local missionGui = player.PlayerGui
-        if not missionGui:FindFirstChild("MissionActive") then
-            game:GetService("ReplicatedStorage").Remotes.Mission:FireServer("Start")
-            wait(2)
-        else
-            local titan = FindClosestTitan()
-            if titan then
-                character.HumanoidRootPart.CFrame = titan.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
-                wait(0.5)
-                if character:FindFirstChild("CDM") then
-                    character.CDM:Activate()
-                elseif character:FindFirstChild("ThunderSpear") then
-                    character.ThunderSpear:Activate()
-                end
-            end
-        end
-        wait(1)
-    end
-end
-
--- // Auto Replay (Nếu Raid/Mission thắng hoặc thua)
-local function AutoReplay()
-    while true do
-        local gui = player.PlayerGui
-        if gui:FindFirstChild("MissionComplete") or gui:FindFirstChild("MissionFailed") then
-            wait(3)
-            game:GetService("ReplicatedStorage").Remotes.Raid:FireServer("Replay")
-        end
-        wait(2)
-    end
-end
-
--- // Thêm các Toggle vào menu
-local AutoFarmToggle = Window:CreateToggle({
-    Name = "Auto Farm Titan",
+-- ✅ Thêm vào menu
+local AutoEscapeToggle = Window:CreateToggle({
+    Name = "Auto Escape",
     CurrentValue = false,
-    Flag = "AutoFarm",
+    Flag = "AutoEscape",
     Callback = function(Value)
         if Value then
-            spawn(AutoSlashTitan)
-            spawn(AutoShootTitan)
+            spawn(AutoEscape)
+        end
+    end
+})
+
+local AutoReloadToggle = Window:CreateToggle({
+    Name = "Auto Reload",
+    CurrentValue = false,
+    Flag = "AutoReload",
+    Callback = function(Value)
+        if Value then
+            spawn(AutoReload)
         end
     end
 })
@@ -203,6 +212,19 @@ local AutoReplayToggle = Window:CreateToggle({
     Callback = function(Value)
         if Value then
             spawn(AutoReplay)
+        end
+    end
+})
+
+local FlyToggle = Window:CreateToggle({
+    Name = "Fly Mode",
+    CurrentValue = false,
+    Flag = "Fly",
+    Callback = function(Value)
+        if Value then
+            StartFlying()
+        else
+            StopFlying()
         end
     end
 })
